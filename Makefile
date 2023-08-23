@@ -1,4 +1,3 @@
-
 CXX =clang++
 CFLAGS =-std=c++20 -Wall -pedantic
 SRCS :=$(wildcard *.cc)
@@ -28,5 +27,5 @@ run:
 	make clean; make; ./$(EXE)
 
 clean:
-	rm *.o *.out bin/*
+	rm *.o *.out bin/* *.ppm
 
