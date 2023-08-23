@@ -84,8 +84,10 @@ struct xHitRec {
     // update so norm always point outward, back to cam
     void update_front_norm(const xRay& r, const XV3& out_norm)
     {
-        is_front = dot(r.dir(), out_norm) < 0;
-        snorm=is_front ? out_norm : -out_norm;
+        is_front = xVec3::dot(r.dir(), out_norm) < 0;
+        snorm=out_norm;
+        if (not is_front)
+            snorm *= -1;
     }
 };
 struct xHitObj {
@@ -96,18 +98,19 @@ public:
     // rec: hit record
     virtual bool hit(const xRay& r, double tmin, double tmax, xHitRec& rec) = 0;
 };
-struct xHitObj_List : xHitObj {
-// collection of multiple hittable objects
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
+//
+struct xHitObj_List : xHitObj {
+// collection of multiple hittable objects
 public:
     xHitObj_List(){}
     xHitObj_List(shared_ptr<xHitObj> obj) { add(obj); }
-    void clear() { _objs.clear(); }
+    void clear() { this->_objs.clear(); }
     void add(shared_ptr<xHitObj> obj)
     {
-        _objs.push_back(obj);
+        this->_objs.push_back(obj);
     }
     bool hit(const xRay& r, double tmin, double tmax, xHitRec& rec) override 
     {
@@ -116,7 +119,7 @@ public:
         xHitRec temp;
         // each iteration, update tmax so rec stores the nearest object hit
         // Temp code
-        for (const auto& obj: _obs)
+        for (const auto& obj: this->_objs)
         {
             if (obj->hit(r,tmin,cur_dist,temp))
             {
