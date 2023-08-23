@@ -21,15 +21,21 @@ XV3 xVec3::cross(const XV3& v1, const XV3& v2)
         }
     };      
 }
-
+void xVec3::zero(XV3& v)
+{
+    v[0]=0;
+    v[1]=0;
+    v[2]=0;
+}
+using std::clamp;
 using std::string;
 using std::stringstream;
 string xRGB::to_string(const XRGB& v)
 {
     stringstream ss;
-    ss<<static_cast<int>(xR(v)*255.99)<<' '
-      <<static_cast<int>(xG(v)*255.99)<<' '
-      <<static_cast<int>(xB(v)*255.99);
+    ss<<static_cast<int>(clamp(xR(v),0.0,0.999)*256)<<' '
+      <<static_cast<int>(clamp(xG(v),0.0,0.999)*256)<<' '
+      <<static_cast<int>(clamp(xB(v),0.0,0.999)*256);
     return ss.str();
 }
 

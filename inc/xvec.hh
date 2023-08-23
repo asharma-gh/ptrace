@@ -14,6 +14,8 @@ namespace xVec3 {
     double norm(const XV3& v);
     double dot(const XV3& v1, const XV3& v2);
     XV3    cross(const XV3& v1, const XV3& v2);
+    void zero(XV3& v);
+
 };
 namespace xRGB {
     std::string to_string(const XRGB& v);

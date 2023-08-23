@@ -11,6 +11,7 @@ void Cam::_init()
     _img_w=700;
     _img_h=static_cast<int>(static_cast<double>(_img_w)/_a_ratio);
     _img_h=(_img_h<1)?1:_img_h; //ensure h clamp to 1 if w<a_ratio
+    _pix_samples=10;
     _vp_h=2.0;
     _vp_w=_vp_h*(static_cast<double>(_img_w)/_img_h);
     _focal_l=1.0;
@@ -32,17 +33,42 @@ void Cam::render(const xHitObj_List& world)
     cout<<"P3"<<endl;
     cout<<_img_w<<' '<<_img_h<<endl;
     cout<<"255"<<endl;
+    // sampled vars
+    XRGB pcolor;
+    XRGB_INIT(pcolor);
+    xRay sample_r;
+    sample_r.set_pt(_cam_center);
+    XV3 pt_sample;
     for(int ii=0;ii<_img_h;ii++)
     {
         LOG("Rows remaining ... ",_img_h-ii);
         for(int jj=0;jj<_img_w;jj++)
         {
-            XV3 p_center=_pix00_pos+(jj*_p_delta_u)+(ii*_p_delta_v);
-            XV3 ray_dir=p_center-_cam_center;
-            xRay r(_cam_center,ray_dir);
-            cout<<xRGB::to_string(_r_color(r, world))<<endl;
+            xVec3::zero(pcolor);
+            for(int sample=0;sample<_pix_samples;sample++)
+            {
+                _sample_ray_pt(sample_r,ii,jj,pt_sample);
+                pcolor += _r_color(sample_r,world);
+            }
+            // avg pcolor
+            pcolor /= _pix_samples;
+            cout<<xRGB::to_string(pcolor)<<endl;
         }
     }
+}
+void Cam::_sample_ray_pt(xRay& r, int ii, int jj, XV3& tmp)
+{
+    XV3 pixel_center=_pix00_pos+(jj*_p_delta_u)+(ii*_p_delta_v);
+    _sample_pix_sq(tmp);
+    tmp=(pixel_center+tmp) - _cam_center;
+    r.set_dir(tmp);
+}
+void Cam::_sample_pix_sq(XV3& tmp)
+{
+    // [-0.5,0.5)
+    double px=-0.5 + ran_d();
+    double py=-0.5 + ran_d();
+    tmp=((px*_p_delta_u) + (py*_p_delta_v));
 }
 XRGB Cam::_r_color(const xRay& r, const xHitObj_List& world) const 
 {

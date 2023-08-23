@@ -17,6 +17,7 @@ EXE =$(shell basename $(shell pwd)).o
 
 all:
 	make -j build
+
 build: $(OBJ_DIR) $(OBJ_LOC)
 	$(CXX) $(CFLAGS) -o $(EXE) $(OBJ_LOC)
 

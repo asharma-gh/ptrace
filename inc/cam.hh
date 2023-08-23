@@ -12,6 +12,7 @@ private:
     double _a_ratio;
     int _img_w;
     int _img_h;
+    int _pix_samples;
     //viewport dims
     double _vp_h;
     double _vp_w;
@@ -27,4 +28,7 @@ private:
 
     void _init();
     XRGB _r_color(const xRay& r, const xHitObj_List& world) const;
+    
+    void _sample_ray_pt(xRay& r, int ii, int jj, XV3& tmp);
+    void _sample_pix_sq(XV3& tmp);
 };
