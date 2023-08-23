@@ -1,4 +1,6 @@
 #include "include.hh"
+#include "xray.hh"
+#include "xhitobj.hh"
 #include <iostream>
 int main()
 {
@@ -26,6 +28,11 @@ int main()
     XV3 vp_orig=camera_center - XV3{{0,0,focal_l}} - viewport_u/2 - viewport_v/2;
     //add border between vp orig and top left pixel
     XV3 pixel00_pos=vp_orig+(0.5*(p_delta_u+p_delta_v));
+    // World
+    // 
+    xHitObj_List world;
+    world.add(make_shared<xSphere>(XV3{{0,0,-1}},0.5));
+    world.add(make_shared<xSphere>(XV3{{0,-100.5,1}},100));
     //output to ppm
     cout<<"P3"<<endl;
     cout<<img_w<<' '<<img_h<<endl;
@@ -38,7 +45,7 @@ int main()
             XV3 p_center=pixel00_pos+(jj*p_delta_u)+(ii*p_delta_v);
             XV3 ray_dir=p_center-camera_center;
             xRay r(camera_center,ray_dir);
-            cout<<xRGB::to_string(r.color())<<endl;
+            cout<<xRGB::to_string(r.color(world))<<endl;
         }
     }
     return 0;
