@@ -12,6 +12,7 @@ void Cam::_init()
     _img_h=static_cast<int>(static_cast<double>(_img_w)/_a_ratio);
     _img_h=(_img_h<1)?1:_img_h; //ensure h clamp to 1 if w<a_ratio
     _pix_samples=10;
+    _r_max_d=10;
     _vp_h=2.0;
     _vp_w=_vp_h*(static_cast<double>(_img_w)/_img_h);
     _focal_l=1.0;
@@ -48,7 +49,7 @@ void Cam::render(const xHitObj_List& world)
             for(int sample=0;sample<_pix_samples;sample++)
             {
                 _sample_ray_pt(sample_r,ii,jj,pt_sample);
-                pcolor += _r_color(sample_r,world);
+                pcolor += _r_color(sample_r, _r_max_d, world);
             }
             // avg pcolor
             pcolor /= _pix_samples;
@@ -70,17 +71,20 @@ void Cam::_sample_pix_sq(XV3& tmp)
     double py=-0.5 + ran_d();
     tmp=((px*_p_delta_u) + (py*_p_delta_v));
 }
-XRGB Cam::_r_color(const xRay& r, const xHitObj_List& world) const 
+XRGB Cam::_r_color(const xRay& r, int cur_depth, const xHitObj_List& world) const 
 {
+    if (cur_depth == 0)
+        return XRGB{{0,0,0}}; // no light is found if no bounce occured 
+                              // or in other words, if we bounced up to max_d, we have an occlusion shadow
     xHitRec rec;
-    if (world.hit(r, 0, infinity, rec))
+    if (world.hit(r, 0.001, infinity, rec))
     {
         // convert domain of [-1,1] to [0,1]
-//        return 0.5*XV3{{rec.snorm[0]+1,rec.snorm[1]+1,rec.snorm[2]+1}};
+        //return 0.5*XV3{{rec.snorm[0]+1,rec.snorm[1]+1,rec.snorm[2]+1}};
         // matte
         XV3 dir=xVec3::random_on_hemisphere(rec.snorm);
         // bounce ray 
-        return 0.5*_r_color(xRay(rec.pt,dir), world);
+        return 0.5*_r_color(xRay(rec.pt,dir), cur_depth-1, world);
     }
     // background
     XV3 unitd=r.dir()/xVec3::norm(r.dir());
