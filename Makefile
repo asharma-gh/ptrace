@@ -15,7 +15,9 @@ EXE =$(shell basename $(shell pwd)).o
 
 .PHONY: run clean all
 
-all: $(OBJ_DIR) $(OBJ_LOC)
+all:
+	make -j build
+build: $(OBJ_DIR) $(OBJ_LOC)
 	$(CXX) $(CFLAGS) -o $(EXE) $(OBJ_LOC)
 
 $(OBJ_DIR)/%.o: %.cc $(DEPS)

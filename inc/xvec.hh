@@ -1,4 +1,3 @@
-
 #include "include.hh"
 ///////////////////////////////////////
 //xt macros
@@ -19,3 +18,4 @@ namespace xVec3 {
 namespace xRGB {
     std::string to_string(const XRGB& v);
 };
+

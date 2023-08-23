@@ -2,7 +2,6 @@
 #include "xvec.hh"
 #include "xray.hh"
 ///////////////////////////////////////
-using std::optional;
 struct xHitRec {
     XV3 pt;
     XV3 snorm;
@@ -17,6 +16,7 @@ struct xHitRec {
             snorm *= -1;
     }
 };
+///////////////////////////////////////
 struct xHitObj {
 // objects which can be hit by rays
 public:
@@ -25,6 +25,8 @@ public:
     // rec: hit record
     virtual bool hit(const xRay& r, double tmin, double tmax, xHitRec& rec) const = 0;
 };
+
+///////////////////////////////////////
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
@@ -60,6 +62,7 @@ public:
 private:
     vector<shared_ptr<xHitObj>> _objs;
 };
+///////////////////////////////////////
 struct xSphere : xHitObj {
     XV3 center;
     double rad;
@@ -98,3 +101,4 @@ struct xSphere : xHitObj {
         return true;
     }
 };
+
