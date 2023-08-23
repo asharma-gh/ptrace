@@ -1,7 +1,9 @@
 #pragma once
-#include <optional>
 #include <iostream>
+#include <memory>
+#include <optional>
 #include <sstream>
+#include <vector>
 #include "xtensor/xarray.hpp"
 #include "xtensor/xmath.hpp"
 #include "xtensor/xio.hpp"
@@ -74,13 +76,67 @@ struct xRay {
 };
 ///////////////////////////////////////
 using std::optional;
-struct xSphere {
+struct xHitRec {
+    XV3 pt;
+    XV3 snorm;
+    double t;
+    bool is_front;
+    // update so norm always point outward, back to cam
+    void update_front_norm(const xRay& r, const XV3& out_norm)
+    {
+        is_front = dot(r.dir(), out_norm) < 0;
+        snorm=is_front ? out_norm : -out_norm;
+    }
+};
+struct xHitObj {
+// objects which can be hit by rays
+public:
+    virtual ~xHitObj()=default;
+    // r: ray, tmin: low t interval, tmax: high t interval ((tmin,tmax))
+    // rec: hit record
+    virtual bool hit(const xRay& r, double tmin, double tmax, xHitRec& rec) = 0;
+};
+struct xHitObj_List : xHitObj {
+// collection of multiple hittable objects
+using std::make_shared;
+using std::shared_ptr;
+using std::vector;
+public:
+    xHitObj_List(){}
+    xHitObj_List(shared_ptr<xHitObj> obj) { add(obj); }
+    void clear() { _objs.clear(); }
+    void add(shared_ptr<xHitObj> obj)
+    {
+        _objs.push_back(obj);
+    }
+    bool hit(const xRay& r, double tmin, double tmax, xHitRec& rec) override 
+    {
+        double cur_dist=tmax;
+        bool did_hit=0;
+        xHitRec temp;
+        // each iteration, update tmax so rec stores the nearest object hit
+        // Temp code
+        for (const auto& obj: _obs)
+        {
+            if (obj->hit(r,tmin,cur_dist,temp))
+            {
+                did_hit = true;
+                cur_dist=temp.t;
+                rec=temp;
+            }
+        }
+        return did_hit;
+    }
+private:
+    vector<shared_ptr<xHitObj>> _objs;
+};
+struct xSphere : xHitObj {
     XV3 center;
     double rad;
     xSphere(){}
     xSphere(XV3 c,double r)
         : center(c),rad(r){}
-    optional<XV3> hit(const xRay& r)
+    bool hit(const xRay& r, double tmin, double tmax, xHitRec& rec) override
     {
         XV3 to=r.pt() - center;
         //quadratic form
@@ -89,25 +145,37 @@ struct xSphere {
         double c=xVec3::dot(to,to)-(rad*rad);
         double disc=(b_half*b_half)-(a*c);
         if (disc < 0)
-            return std::nullopt;
-        // pick low term
-        double xint= (-b_half - sqrt(disc)) / a;
+            return false;
+        double sqdisc=sqrt(disc);
+        double xint =(-b_half - sqdisc) / a;
+        // return the minimum intercept within tmin,tmax
+        if (xint >= tmax)
+            return false;
+        if (xint <= tmin)
+        {
+            // test high intercept
+            xint=(-b_half + sqdisc) / a;
+            if (xint <= tmin || xint >= tmax)
+                return false;
+        }
         // xint contains the value where r intersects s,
         // minus sphere center to get surface norm
         XV3 snorm=r.at(xint)-this->center;
-        // return unit norm
-        return optional<XV3>{snorm / xVec3::norm(snorm)};
+        // update hitrec
+        rec.t=xint;
+        rec.pt=r.at(xint);
+        rec.update_front_norm(r,snorm/rad);
+        return true;
     }
 };
 XRGB xRay::color() const 
 {
     xSphere s(XV3{{0,0,-1}},0.5);
-    optional<XV3> osnorm = s.hit(*this);
-    if (osnorm.has_value())
+    xHitRec rec;
+    if (s.hit(*this, 0, 100, rec))
     {
-        XV3 snorm=osnorm.value();
         // convert domain of [-1,1] to [0,1]
-        return 0.5*XV3{{snorm[0]+1,snorm[1]+1,snorm[2]+1}};
+        return 0.5*XV3{{rec.snorm[0]+1,rec.snorm[1]+1,rec.snorm[2]+1}};
     }
     XV3 unitd=this->_dir/xVec3::norm(this->_dir);
     double yh=0.5*(unitd[1] + 1);
