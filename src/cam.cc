@@ -76,7 +76,11 @@ XRGB Cam::_r_color(const xRay& r, const xHitObj_List& world) const
     if (world.hit(r, 0, infinity, rec))
     {
         // convert domain of [-1,1] to [0,1]
-        return 0.5*XV3{{rec.snorm[0]+1,rec.snorm[1]+1,rec.snorm[2]+1}};
+//        return 0.5*XV3{{rec.snorm[0]+1,rec.snorm[1]+1,rec.snorm[2]+1}};
+        // matte
+        XV3 dir=xVec3::random_on_hemisphere(rec.snorm);
+        // bounce ray 
+        return 0.5*_r_color(xRay(rec.pt,dir), world);
     }
     // background
     XV3 unitd=r.dir()/xVec3::norm(r.dir());
