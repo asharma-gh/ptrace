@@ -57,13 +57,13 @@ namespace xRGB {
     using std::clamp;
     using std::string;
     using std::stringstream;
-    inline double lin_to_gam(double lin) { return sqrt(lin); };
+    inline double lin_to_gam(double lin) { return sqrt(lin) };
     inline std::string to_string(const XRGB& v)
     {
         stringstream ss;
         ss<<static_cast<int>(clamp(xRGB::lin_to_gam(xR(v)),0.0,0.999)*256)<<' '
           <<static_cast<int>(clamp(xRGB::lin_to_gam(xG(v)),0.0,0.999)*256)<<' '
-          <<static_cast<int>(clamp(xRGB::lin_to_gam(xB(v)),0.0,0.999)*256);
+          <<static_cast<int>(clamp(xRGB::lin_to_Gam(xB(v)),0.0,0.999)*256);
         return ss.str();
     }
 };
