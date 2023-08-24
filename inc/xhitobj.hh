@@ -2,9 +2,12 @@
 #include "xvec.hh"
 #include "xray.hh"
 ///////////////////////////////////////
+struct xMat;
+using std::shared_ptr;
 struct xHitRec {
     XV3 pt;
     XV3 snorm;
+    shared_ptr<xMat> mat;
     double t;
     bool is_front;
     // update so norm always point outward, back to cam
@@ -64,18 +67,17 @@ private:
 };
 ///////////////////////////////////////
 struct xSphere : xHitObj {
-    XV3 center;
-    double rad;
+public:
     xSphere(){}
-    xSphere(XV3 c,double r)
-        : center(c),rad(r){}
+    xSphere(XV3 c,double r, shared_ptr<xMat> mat)
+        : _center(c),_rad(r),_mat(mat){}
     bool hit(const xRay& r, double tmin, double tmax, xHitRec& rec) const override
     {
-        XV3 to=r.pt() - center;
+        XV3 to=r.pt() - _center;
         //quadratic form
         double a=xVec3::dot(r.dir(),r.dir());
         double b_half=xVec3::dot(to,r.dir());
-        double c=xVec3::dot(to,to)-(rad*rad);
+        double c=xVec3::dot(to,to)-(_rad*_rad);
         double disc=(b_half*b_half)-(a*c);
         if (disc < 0)
             return false;
@@ -93,12 +95,17 @@ struct xSphere : xHitObj {
         }
         // xint contains the value where r intersects s,
         // minus sphere center to get surface norm
-        XV3 snorm=r.at(xint)-this->center;
+        XV3 snorm=r.at(xint)-this->_center;
         // update hitrec
         rec.t=xint;
         rec.pt=r.at(xint);
-        rec.update_front_norm(r,snorm/rad);
+        rec.update_front_norm(r,snorm/_rad);
+        rec.mat=_mat;
         return true;
     }
+private:
+    XV3 _center;
+    double _rad;
+    shared_ptr<xMat> _mat;
 };
 

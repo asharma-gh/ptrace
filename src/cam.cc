@@ -1,4 +1,5 @@
 #include "cam.hh"
+#include "mat.hh"
 using std::cout;
 using std::endl;
 Cam::Cam()
@@ -8,7 +9,7 @@ Cam::Cam()
 void Cam::_init()
 {
     _a_ratio=16.0/9.0;
-    _img_w=700;
+    _img_w=500;
     _img_h=static_cast<int>(static_cast<double>(_img_w)/_a_ratio);
     _img_h=(_img_h<1)?1:_img_h; //ensure h clamp to 1 if w<a_ratio
     _pix_samples=10;
@@ -79,12 +80,11 @@ XRGB Cam::_r_color(const xRay& r, int cur_depth, const xHitObj_List& world) cons
     xHitRec rec;
     if (world.hit(r, 0.001, infinity, rec))
     {
-        // convert domain of [-1,1] to [0,1]
-        //return 0.5*XV3{{rec.snorm[0]+1,rec.snorm[1]+1,rec.snorm[2]+1}};
-        // matte
-        XV3 dir=rec.snorm + xVec3::random_unit_vec();
-        // bounce ray 
-        return 0.5*_r_color(xRay(rec.pt,dir), cur_depth-1, world);
+        xRay sc;
+        XRGB att;
+        if (rec.mat->scatter(r,rec,att,sc)) {
+            return att*_r_color(sc,cur_depth-1,world);}
+        return att;
     }
     // background
     XV3 unitd=r.dir()/xVec3::norm(r.dir());

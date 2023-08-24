@@ -23,7 +23,17 @@ namespace xVec3 {
             }};  
     }
     inline void zero(XV3& v) { v[0]=0; v[1]=0; v[2]=0; }
-    inline XV3 unit_vec(XV3& v) { return v / xVec3::norm(v); }
+    inline bool near_zero(const XV3& v) 
+    {
+        double er=1e-8;
+        return (fabs(v[0]) < er) && (fabs(v[1]) < er) && (fabs(v[2]) < er);
+    }
+    inline XV3 reflect(const XV3& v, const XV3& n)
+    {
+        // v + -1*2*[proj. v->n]. note: v pts in opposite dir to n
+        return v-(2*xVec3::dot(v,n)*n);
+    }
+    inline XV3 unit_vec(const XV3& v) { return v / xVec3::norm(v); }
     inline XV3 random() { return XV3{{ran_d(),ran_d(),ran_d()}}; };
     inline XV3 random(double d1, double d2) 
     { 
