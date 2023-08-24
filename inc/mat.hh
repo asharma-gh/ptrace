@@ -7,7 +7,10 @@ struct xHitRec;
 struct xMat {
     virtual ~xMat()=default;
     virtual bool scatter(
-            const xRay& r_in, const xHitRec& rec, XRGB& atten, xRay& scattered) const = 0;
+            const xRay& r_in, 
+            const xHitRec& rec, 
+            XRGB& atten, 
+            xRay& scattered) const = 0;
 };
 ///////////////////////////////////////
 struct Lambertian : xMat {
