@@ -9,11 +9,11 @@ Cam::Cam()
 void Cam::_init()
 {
     _a_ratio=16.0/9.0;
-    _img_w=500;
+    _img_w=200;
     _img_h=static_cast<int>(static_cast<double>(_img_w)/_a_ratio);
     _img_h=(_img_h<1)?1:_img_h; //ensure h clamp to 1 if w<a_ratio
     _pix_samples=10;
-    _r_max_d=10;
+    _r_max_d=15;
     _vp_h=2.0;
     _vp_w=_vp_h*(static_cast<double>(_img_w)/_img_h);
     _focal_l=1.0;

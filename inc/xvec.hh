@@ -33,6 +33,13 @@ namespace xVec3 {
         // v + -1*2*[proj. v->n]. note: v pts in opposite dir to n
         return v-(2*xVec3::dot(v,n)*n);
     }
+    inline XV3 refract(const XV3& udir, const XV3& snorm, double refr)
+    {
+        double costh = fmin(dot(-udir,snorm),1.0); // udir,snorm are unit vec.
+        XV3 r_perp = refr*(udir+(costh*snorm));
+        XV3 r_pl   = -1*sqrt(fabs(1.0 - xVec3::norm_sq(r_perp)))*snorm;
+        return r_perp+r_pl;
+    }
     inline XV3 unit_vec(const XV3& v) { return v / xVec3::norm(v); }
     inline XV3 random() { return XV3{{ran_d(),ran_d(),ran_d()}}; };
     inline XV3 random(double d1, double d2) 
